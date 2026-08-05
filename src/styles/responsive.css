@@ -1,0 +1,319 @@
+@media (max-width: 1100px) {
+  .summary-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .field-wide select,
+  .field-wide input {
+    width: 260px;
+  }
+}
+
+@media (max-width: 840px) {
+  .mobile-only {
+    display: inline-grid;
+  }
+
+  .sidebar {
+    width: 240px;
+    transform: translateX(-100%);
+    transition: transform 180ms ease;
+  }
+
+  .sidebar-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 19;
+    border: 0;
+    background: rgba(5, 3, 9, 0.68);
+  }
+
+  .workspace {
+    margin-left: 0;
+  }
+
+  .topbar {
+    padding: 0 16px;
+  }
+
+  .global-search {
+    width: min(390px, 58vw);
+  }
+
+  .page-content {
+    padding: 22px 18px 40px;
+  }
+
+  .scope-notice {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .scope-notice span {
+    width: 100%;
+    padding-left: 25px;
+  }
+
+  .filter-bar {
+    flex-wrap: wrap;
+  }
+
+  .filter-title {
+    width: 100%;
+    height: auto;
+    padding: 0 0 10px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dependency-notice p {
+    min-width: 0;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field-span-2 {
+    grid-column: auto;
+  }
+
+  .field {
+    flex: 1;
+  }
+
+  .field input,
+  .field select,
+  .field-wide select,
+  .field-wide input {
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar-credit,
+  .global-search kbd {
+    display: none;
+  }
+
+  .global-search {
+    width: auto;
+    flex: 1;
+  }
+
+  .page-content {
+    padding: 18px 12px 32px;
+  }
+
+  .page-heading {
+    align-items: flex-start;
+  }
+
+  .page-heading h1 {
+    font-size: 21px;
+  }
+
+  .page-heading p {
+    font-size: 11px;
+    line-height: 1.55;
+  }
+
+  .export-button {
+    width: 38px;
+    min-height: 38px;
+    padding: 0;
+    overflow: hidden;
+    font-size: 0;
+  }
+
+  .export-button svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .scope-notice {
+    margin-top: 16px;
+  }
+
+  .filter-bar {
+    gap: 10px;
+  }
+
+  .field {
+    min-width: 100%;
+  }
+
+  .reset-button {
+    width: 100%;
+  }
+
+  .summary-strip {
+    grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+    gap: 7px;
+  }
+
+  .summary-card {
+    padding: 11px;
+    gap: 8px;
+  }
+
+  .summary-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .summary-card strong {
+    font-size: 14px;
+  }
+
+  .finance-tabs {
+    padding: 0 8px;
+  }
+
+  .finance-tabs button {
+    min-width: 126px;
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .data-panel-heading p {
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .record-count {
+    display: none;
+  }
+
+  .table-footer {
+    gap: 10px;
+  }
+
+  .export-dialog > footer {
+    flex-wrap: wrap;
+  }
+
+  .operation-heading {
+    flex-direction: column;
+  }
+
+  .heading-actions {
+    width: 100%;
+  }
+
+  .heading-actions button {
+    flex: 1;
+  }
+
+  .operation-dialog {
+    max-height: calc(100vh - 20px);
+  }
+
+  .operation-body {
+    padding: 10px;
+  }
+
+  .form-section {
+    padding: 11px;
+  }
+
+  .workbook-checklist {
+    grid-template-columns: 1fr;
+  }
+
+  .account-check-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recharge-dialog {
+    max-height: calc(100vh - 20px);
+  }
+
+  .recharge-dialog-body {
+    padding: 10px;
+  }
+
+  .account-identity,
+  .recharge-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .account-identity div {
+    border-right: 0;
+    border-bottom: 1px solid var(--border) !important;
+  }
+
+  .account-identity div:last-child {
+    border-bottom: 0 !important;
+  }
+
+  .balance-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .balance-preview div {
+    min-height: 54px;
+    border-right: 0;
+    border-bottom: 1px solid #3c3152;
+  }
+
+  .balance-preview div:last-child {
+    border-bottom: 0;
+  }
+
+  .recharge-dialog > footer {
+    flex-wrap: wrap;
+  }
+
+  .recharge-dialog > footer button {
+    flex: 1;
+  }
+
+  .confirm-view {
+    padding: 26px 14px;
+  }
+
+  .confirm-view dl div,
+  .detail-list div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .detail-drawer > footer {
+    flex-wrap: wrap;
+  }
+
+  .detail-drawer > footer button {
+    flex: 1;
+  }
+
+  .floating-toast {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    text-align: center;
+  }
+
+  .export-dialog .danger-demo {
+    width: 100%;
+    margin: 0;
+    order: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

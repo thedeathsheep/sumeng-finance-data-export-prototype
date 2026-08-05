@@ -1,0 +1,139 @@
+:root {
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  color: #f1eef9;
+  background: #0e0b17;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --bg: #0e0b17;
+  --surface: #15111f;
+  --surface-raised: #1a1526;
+  --surface-hover: #211a31;
+  --border: #2a2338;
+  --border-bright: #3b3150;
+  --text: #f1eef9;
+  --muted: #9d95ac;
+  --muted-2: #746c83;
+  --purple: #8d6df4;
+  --purple-strong: #a78bfa;
+  --purple-soft: rgba(141, 109, 244, 0.13);
+  --green: #54d29a;
+  --amber: #f2be63;
+  --red: #f47b8f;
+  --blue: #6ba8f5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--purple-strong);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.mobile-only {
+  display: none;
+}
+
+.icon-button {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+  border-color: var(--border);
+}
+
+.primary-button,
+.secondary-button,
+.text-button {
+  min-height: 36px;
+  border-radius: 7px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary-button {
+  border: 1px solid #9f83f7;
+  color: white;
+  background: #7657dc;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.primary-button:hover {
+  background: #8365e7;
+}
+
+.secondary-button {
+  border: 1px solid var(--border-bright);
+  color: #d4cede;
+  background: var(--surface-raised);
+}
+
+.secondary-button:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.text-button {
+  border: 0;
+  color: var(--muted);
+  background: transparent;
+}

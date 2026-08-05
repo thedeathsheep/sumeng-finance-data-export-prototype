@@ -1,0 +1,35 @@
+const toneByValue: Record<string, string> = {
+  "系统同步": "success",
+  "人工录入": "purple",
+  "正常": "success",
+  "正常使用": "success",
+  "冻结": "warning",
+  "到期停用": "neutral",
+  "已生效": "success",
+  "已入账": "success",
+  "已完成": "success",
+  "已发放": "success",
+  "已收款": "success",
+  "已退款": "success",
+  "已支付": "success",
+  "无需资金处理": "neutral",
+  "消耗成功": "success",
+  "待处理": "warning",
+  "待发放": "warning",
+  "已收款待发放": "warning",
+  "资金已处理待积分": "warning",
+  "待收款": "warning",
+  "已作废": "neutral",
+  "已冲正": "warning",
+  "历史类型未区分": "warning",
+  "用户": "info",
+  "团队": "purple",
+  "个人": "info",
+  "企业": "purple",
+  "增加": "success",
+  "扣减": "warning",
+};
+
+export function StatusBadge({ value }: { value: string }) {
+  return <span className={`status-badge badge-${toneByValue[value] ?? "neutral"}`}>{value}</span>;
+}

@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.next/
+.wrangler/
+test-results/
+playwright-report/
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+playwright.config.js
+playwright.config.d.ts
+.vite-*.log
+.*.log
