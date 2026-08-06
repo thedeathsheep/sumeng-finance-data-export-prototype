@@ -6,7 +6,6 @@ interface RefundSupplementDialogProps {
   record: SpecialRecord | null;
   onClose: () => void;
   onSave: (recordId: string, draft: RefundSupplementDraft) => void;
-  onCancelRefund: (recordId: string) => void;
 }
 
 const refundReasons: RefundReason[] = ["客户注销", "服务终止", "多扣费返还", "其他"];
@@ -20,7 +19,7 @@ const initialDraft = (record: SpecialRecord): RefundSupplementDraft => ({
   refundEvidence: record.refundEvidence === "/" ? "" : record.refundEvidence,
 });
 
-export function RefundSupplementDialog({ record, onClose, onSave, onCancelRefund }: RefundSupplementDialogProps) {
+export function RefundSupplementDialog({ record, onClose, onSave }: RefundSupplementDialogProps) {
   const [draft, setDraft] = useState<RefundSupplementDraft | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -68,7 +67,6 @@ export function RefundSupplementDialog({ record, onClose, onSave, onCancelRefund
         </section>
       </div>
       <footer>
-        <button className="text-button" onClick={() => onCancelRefund(record.id)}>取消退款标记</button>
         <div><button className="secondary-button" onClick={onClose}>关闭</button><button className="primary-button" disabled={!complete} onClick={() => onSave(record.id, draft)}>确认退款完成</button></div>
       </footer>
     </section>

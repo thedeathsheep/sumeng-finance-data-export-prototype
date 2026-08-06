@@ -1,5 +1,10 @@
 export type PageId = "credits" | "finance";
-export type TabId = "profiles" | "recharges" | "consumptions" | "monthly" | "special";
+export type TabId =
+  | "profiles"
+  | "recharges"
+  | "consumptions"
+  | "monthly"
+  | "special";
 export type AccountType = "用户" | "团队";
 export type CustomerType = "个人" | "企业";
 export type RecordSource = "系统同步" | "人工维护";
@@ -43,6 +48,7 @@ export interface FinanceProfileRecord {
   linkedAccountNames: string[];
   source: RecordSource;
   operator: string;
+  lastModifiedBy: string;
   updatedAt: string;
   recordStatus: RecordStatus;
 }
@@ -86,6 +92,7 @@ export interface CreditEntryRecord {
   status: RecordStatus;
   reason: string;
   source: "系统同步";
+  lastModifiedBy: string;
   updatedAt: string;
 }
 
@@ -112,6 +119,11 @@ export interface ConsumptionRecord {
   relatedType: "任务" | "订单" | "作业" | "其他" | "/";
   relatedId: string;
   status: "消耗成功" | "已冲正";
+  source: "系统同步";
+  operator: string;
+  lastModifiedBy: string;
+  updatedAt: string;
+  recordStatus: RecordStatus;
 }
 
 export interface MonthlySummaryRecord {
@@ -126,7 +138,11 @@ export interface MonthlySummaryRecord {
 }
 
 export type DeductionBusinessNature = "退款扣回" | "纠错扣减" | "其他";
-export type SpecialBusinessNature = DeductionBusinessNature | "自动过期清零" | "系统调账或冲红" | "未支付取消";
+export type SpecialBusinessNature =
+  | DeductionBusinessNature
+  | "自动过期清零"
+  | "系统调账或冲红"
+  | "未支付取消";
 export type RefundReason = "客户注销" | "服务终止" | "多扣费返还" | "其他";
 
 export interface SpecialRecord {
@@ -138,7 +154,12 @@ export interface SpecialRecord {
   financeProfileName: string;
   customerType: CustomerType | "/";
   month: string;
-  type: "后台手动扣减" | "退款业务" | "过期清零" | "调账 / 冲红" | "作废 / 取消未生效充值订单";
+  type:
+    | "后台手动扣减"
+    | "退款业务"
+    | "过期清零"
+    | "调账 / 冲红"
+    | "作废 / 取消未生效充值订单";
   businessNature: SpecialBusinessNature;
   occurredAt: string;
   planPoints: number | string;
@@ -173,7 +194,9 @@ export interface AuditLogRecord {
 }
 
 export type RechargeDirection = "增加" | "扣减";
-export type AdjustmentBusinessNature = Exclude<RechargeBusinessNature, "线上购买" | "套餐开通"> | DeductionBusinessNature;
+export type AdjustmentBusinessNature =
+  | Exclude<RechargeBusinessNature, "线上购买" | "套餐开通">
+  | DeductionBusinessNature;
 
 export interface RechargeAdjustmentDraft {
   direction: RechargeDirection;
@@ -207,4 +230,14 @@ export interface RefundSupplementDraft {
   refundEvidence: string;
 }
 
-export type FinanceRow = FinanceProfileRecord | CreditEntryRecord | ConsumptionRecord | MonthlySummaryRecord | SpecialRecord;
+export interface BusinessNatureChangeDraft {
+  businessNature: DeductionBusinessNature;
+  changeReason: string;
+}
+
+export type FinanceRow =
+  | FinanceProfileRecord
+  | CreditEntryRecord
+  | ConsumptionRecord
+  | MonthlySummaryRecord
+  | SpecialRecord;

@@ -816,7 +816,7 @@ tbody tr:hover td {
 }
 
 .refund-dialog > footer {
-  justify-content: space-between;
+  justify-content: flex-end;
 }
 
 .refund-dialog > footer > div {

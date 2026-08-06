@@ -27,7 +27,7 @@ export function FilterBar(props: FilterBarProps) {
   return <section className="filter-bar finance-filter-bar" aria-label="财务数据筛选">
     <div className="filter-title"><SlidersHorizontal size={16} /><span>筛选条件</span></div>
     <label className="field"><span>业务月份</span><input type="month" value={month} onChange={(event) => props.onMonthChange(event.target.value)} /></label>
-    <label className="field"><span>线上对象类型</span><select value={accountType} onChange={(event) => props.onAccountTypeChange(event.target.value as "全部" | AccountType)}><option>全部</option><option>用户</option><option>团队</option></select></label>
+    <label className="field"><span>账户归属类型</span><select value={accountType} onChange={(event) => props.onAccountTypeChange(event.target.value as "全部" | AccountType)}><option>全部</option><option>用户</option><option>团队</option></select></label>
     <label className="field"><span>客户类型</span><select value={customerType} onChange={(event) => props.onCustomerTypeChange(event.target.value as CustomerTypeFilter)}><option>全部</option><option>个人</option><option>企业</option><option>未关联</option></select></label>
     <label className="field field-wide"><span>账户 / 财务主体</span><input type="search" list="account-options" value={accountQuery} placeholder="搜索名称或 ID" onChange={(event) => props.onAccountQueryChange(event.target.value)} /><datalist id="account-options">{accounts.map((account) => <option key={account.id} value={account.accountName}>{account.id} · {account.accountType}</option>)}</datalist></label>
     <label className="field"><span>业务类型 / 性质</span><input type="search" value={businessQuery} placeholder="例如：退款扣回" onChange={(event) => props.onBusinessQueryChange(event.target.value)} /></label>
