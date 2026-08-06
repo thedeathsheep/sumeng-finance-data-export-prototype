@@ -39,11 +39,12 @@ export function CreditAccountsPage({ accounts, onAccountsChange, onAdjustment }:
       accountName: account.accountName,
       accountType: account.accountType,
       direction: draft.direction,
+      businessNature: draft.businessNature,
       delta,
       balanceBefore: account.rechargePointsBalance,
       balanceAfter,
       source: "后台手动调整",
-      reason: draft.reason,
+      reason: draft.reason || "/",
       operator: "管理员 Wsq",
       occurredAt: "2026-07-31 14:35:00",
     };
@@ -88,8 +89,8 @@ export function CreditAccountsPage({ accounts, onAccountsChange, onAdjustment }:
     </section>
 
     <section className="data-panel ledger-panel">
-      <header className="data-panel-heading"><div><h2>最近调整流水</h2><p>充值积分 · 来源：后台手动调整</p></div><span className="record-count">最近 {Math.min(ledgers.length, 5)} 条</span></header>
-      <div className="table-scroll"><table><thead><tr>{["流水号", "账户", "方向", "变动积分", "调整前", "调整后", "调整原因", "操作人", "操作时间"].map((header) => <th key={header}>{header}</th>)}</tr></thead><tbody>{ledgers.slice(0, 5).map((ledger) => <tr key={ledger.id}><td>{ledger.id}</td><td><strong>{ledger.accountName}</strong><small className="table-subline">{ledger.accountType} · {ledger.accountId}</small></td><td><StatusBadge value={ledger.direction} /></td><td className={ledger.delta >= 0 ? "money-positive" : "money-negative"}>{ledger.delta >= 0 ? "+" : ""}{pointText(ledger.delta)}</td><td>{pointText(ledger.balanceBefore)}</td><td>{pointText(ledger.balanceAfter)}</td><td><span className="reason-cell">{ledger.reason}</span></td><td>{ledger.operator}</td><td>{ledger.occurredAt}</td></tr>)}</tbody></table></div>
+      <header className="data-panel-heading"><div><h2>最近调整流水</h2><p>充值积分 · 来源：后台手动调整 · 业务性质可检索</p></div><span className="record-count">最近 {Math.min(ledgers.length, 5)} 条</span></header>
+      <div className="table-scroll"><table><thead><tr>{["流水号", "账户", "方向", "业务性质", "变动积分", "调整前", "调整后", "调整说明", "操作人", "操作时间"].map((header) => <th key={header}>{header}</th>)}</tr></thead><tbody>{ledgers.slice(0, 5).map((ledger) => <tr key={ledger.id}><td>{ledger.id}</td><td><strong>{ledger.accountName}</strong><small className="table-subline">{ledger.accountType} · {ledger.accountId}</small></td><td><StatusBadge value={ledger.direction} /></td><td><StatusBadge value={ledger.businessNature} /></td><td className={ledger.delta >= 0 ? "money-positive" : "money-negative"}>{ledger.delta >= 0 ? "+" : ""}{pointText(ledger.delta)}</td><td>{pointText(ledger.balanceBefore)}</td><td>{pointText(ledger.balanceAfter)}</td><td><span className="reason-cell">{ledger.reason}</span></td><td>{ledger.operator}</td><td>{ledger.occurredAt}</td></tr>)}</tbody></table></div>
     </section>
 
     <RechargeAdjustmentDialog account={selectedAccount} onClose={() => setSelectedAccount(null)} onSubmit={addAdjustment} />

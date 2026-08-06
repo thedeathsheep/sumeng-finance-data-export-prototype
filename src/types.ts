@@ -2,8 +2,8 @@ export type PageId = "credits" | "finance";
 export type TabId = "profiles" | "recharges" | "consumptions" | "monthly" | "special";
 export type AccountType = "用户" | "团队";
 export type CustomerType = "个人" | "企业";
-export type DataStatus = "系统同步" | "人工录入" | "暂无数据" | "已生效" | "已作废" | "待收款" | "已收款";
-export type RecordSource = "系统同步" | "人工录入" | "系统同步·人工补充";
+export type RecordSource = "系统同步" | "人工维护";
+export type RecordStatus = "有效" | "已作废";
 
 export interface AccountRecord {
   id: string;
@@ -18,7 +18,7 @@ export interface AccountRecord {
   giftPointsBalance: number;
   invoiceTitle: string;
   taxNumber: string;
-  dataSource: RecordSource;
+  dataSource: "系统同步";
   activeMonths: string[];
 }
 
@@ -29,14 +29,14 @@ export interface FinanceProfileRecord {
   unifiedCreditCode: string;
   contactName: string;
   contactPhone: string;
-  accountStatus: string;
+  accountStatus: "正常" | "冻结" | "注销" | "到期停用";
   contractNo: string;
   serviceStart: string;
   serviceEnd: string;
-  packageCycle: string;
+  packageCycle: "月" | "年";
   contractPrepaidCap: number | string;
   unitPriceStandard: string;
-  invoiceNeeded: string;
+  invoiceNeeded: "是" | "否" | "/";
   historicalInvoicedAmount: number | string;
   uninvoicedPrepaidBalance: number | string;
   linkedAccountIds: string[];
@@ -44,39 +44,48 @@ export interface FinanceProfileRecord {
   source: RecordSource;
   operator: string;
   updatedAt: string;
-  recordStatus: "已生效" | "已作废";
+  recordStatus: RecordStatus;
 }
+
+export type RechargeBusinessNature =
+  | "线上购买"
+  | "线下购买"
+  | "套餐开通"
+  | "免费升级"
+  | "客户补偿"
+  | "纠错增加"
+  | "其他";
 
 export interface CreditEntryRecord {
   id: string;
-  recordSource: "充值订单" | "积分调整流水" | "套餐变更记录" | "赠送积分流水" | "历史积分流水" | "人工充值记录";
+  recordSource: "线上充值订单" | "后台套餐变更" | "后台充值积分调整";
   accountId: string;
   accountName: string;
   accountType: AccountType;
   financeProfileId: string;
   financeProfileName: string;
-  customerType?: CustomerType | "/";
+  customerType: CustomerType | "/";
   month: string;
-  businessType: string;
+  businessNature: RechargeBusinessNature;
   actualAmount: number | string;
   giftAmount: number | string;
   paymentMethod: string;
   paymentReference: string;
   discountType: string;
   activityBatch: string;
-  receiptStatus: "待收款" | "已收款" | string;
+  receiptStatus: "已收款" | "待收款" | "/";
   contractNo: string;
   planName: string;
-  planPoints: number;
-  rechargePoints: number;
-  giftPoints: number;
+  planPoints: number | string;
+  rechargePoints: number | string;
+  giftPoints: number | string;
   pointsLedgerId: string;
-  pointsDeliveryStatus: "待发放" | "已发放";
+  pointsDeliveryStatus: "已发放" | "部分发放" | "发放失败" | "不涉及积分" | "/";
   occurredAt: string;
   operator: string;
-  status: "待收款" | "已收款待发放" | "已完成" | "已冲正" | "历史类型未区分" | "已作废";
+  status: RecordStatus;
   reason: string;
-  source: RecordSource;
+  source: "系统同步";
   updatedAt: string;
 }
 
@@ -87,20 +96,20 @@ export interface ConsumptionRecord {
   accountType: AccountType;
   financeProfileId: string;
   financeProfileName: string;
-  customerType?: CustomerType | "/";
+  customerType: CustomerType | "/";
   month: string;
   occurredAt: string;
   scene: string;
   service: string;
-  planPoints: number;
-  rechargePoints: number;
-  giftPoints: number;
+  planPoints: number | string;
+  rechargePoints: number | string;
+  giftPoints: number | string;
   principalDeductionAmount: number | string;
   giftDeductionAmount: number | string;
   billingUnitPrice: string;
   measurementBasis: string;
   contractNo: string;
-  relatedType: string;
+  relatedType: "任务" | "订单" | "作业" | "其他" | "/";
   relatedId: string;
   status: "消耗成功" | "已冲正";
 }
@@ -108,13 +117,17 @@ export interface ConsumptionRecord {
 export interface MonthlySummaryRecord {
   id: string;
   month: string;
-  newRechargePrincipal: number;
+  newRechargePrincipal: number | string;
   giftAmount: number | string;
-  uncollectedRechargeAmount: number;
+  uncollectedRechargeAmount: number | string;
   principalConsumptionAmount: number | string;
   giftConsumptionAmount: number | string;
   note: string;
 }
+
+export type DeductionBusinessNature = "退款扣回" | "纠错扣减" | "其他";
+export type SpecialBusinessNature = DeductionBusinessNature | "自动过期清零" | "系统调账或冲红" | "未支付取消";
+export type RefundReason = "客户注销" | "服务终止" | "多扣费返还" | "其他";
 
 export interface SpecialRecord {
   id: string;
@@ -123,43 +136,49 @@ export interface SpecialRecord {
   accountType: AccountType | "/";
   financeProfileId: string;
   financeProfileName: string;
-  customerType?: CustomerType | "/";
+  customerType: CustomerType | "/";
   month: string;
-  type: "后台手动扣减" | "退款业务" | "过期清零" | "调账 / 冲红" | "作废 / 取消订单";
+  type: "后台手动扣减" | "退款业务" | "过期清零" | "调账 / 冲红" | "作废 / 取消未生效充值订单";
+  businessNature: SpecialBusinessNature;
   occurredAt: string;
-  planPoints: number;
-  rechargePoints: number;
-  giftPoints: number;
-  principalAmount: number | string;
-  giftAmount: number | string;
+  planPoints: number | string;
+  rechargePoints: number | string;
+  giftPoints: number | string;
   relatedRecordType: string;
   relatedRecordId: string;
   pointsLedgerId: string;
-  refundAt?: string;
-  refundReference?: string;
-  fundStatus: "待处理" | "已退款" | "无需资金处理";
+  handlingStatus: "无需处理" | "退款待补充" | "退款已完成";
+  fundStatus: "不涉及资金" | "待退款确认" | "已退款";
+  refundAmount: number | string;
+  refundDate: string;
+  transferReference: string;
+  refundReason: RefundReason | "/";
+  refundReasonNote: string;
+  refundEvidence: string;
   reason: string;
-  attachment: string;
   operator: string;
-  source: RecordSource;
+  source: "系统同步";
+  lastModifiedBy: string;
   updatedAt: string;
-  status: "待处理" | "资金已处理待积分" | "已完成" | "已作废";
+  status: RecordStatus;
 }
 
 export interface AuditLogRecord {
   id: string;
   recordId: string;
-  action: "创建" | "修改" | "关联积分流水" | "作废";
+  action: "创建" | "修改" | "取消退款标记" | "作废";
   operator: string;
   occurredAt: string;
   detail: string;
 }
 
 export type RechargeDirection = "增加" | "扣减";
+export type AdjustmentBusinessNature = Exclude<RechargeBusinessNature, "线上购买" | "套餐开通"> | DeductionBusinessNature;
 
 export interface RechargeAdjustmentDraft {
   direction: RechargeDirection;
   amount: number;
+  businessNature: AdjustmentBusinessNature;
   reason: string;
 }
 
@@ -169,6 +188,7 @@ export interface RechargeAdjustmentLedger {
   accountName: string;
   accountType: AccountType;
   direction: RechargeDirection;
+  businessNature: AdjustmentBusinessNature;
   delta: number;
   balanceBefore: number;
   balanceAfter: number;
@@ -176,6 +196,15 @@ export interface RechargeAdjustmentLedger {
   reason: string;
   operator: string;
   occurredAt: string;
+}
+
+export interface RefundSupplementDraft {
+  refundAmount: string;
+  refundDate: string;
+  transferReference: string;
+  refundReason: RefundReason | "";
+  refundReasonNote: string;
+  refundEvidence: string;
 }
 
 export type FinanceRow = FinanceProfileRecord | CreditEntryRecord | ConsumptionRecord | MonthlySummaryRecord | SpecialRecord;

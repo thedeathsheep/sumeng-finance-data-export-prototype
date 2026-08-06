@@ -94,10 +94,23 @@
   padding: 13px 14px;
   display: flex;
   align-items: flex-end;
+  flex-wrap: wrap;
   gap: 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
+}
+
+.finance-filter-bar .field {
+  flex: 1 1 142px;
+}
+
+.finance-filter-bar .field-wide {
+  flex-basis: 250px;
+}
+
+.finance-filter-bar .reset-button {
+  flex: none;
 }
 
 .filter-title {
@@ -544,10 +557,6 @@
 .fee-scope-note strong {
   flex: none;
   color: #d4e6f8;
-}
-
-.section-divider {
-  margin-top: 16px;
 }
 
 .evidence-upload {

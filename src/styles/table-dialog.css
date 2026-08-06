@@ -496,6 +496,7 @@ tbody tr:hover td {
 }
 
 .recharge-dialog .field input,
+.recharge-dialog .field select,
 .recharge-dialog .field textarea {
   width: 100%;
 }
@@ -560,6 +561,49 @@ tbody tr:hover td {
 
 .immutable-warning svg {
   flex: none;
+}
+
+.immutable-facts {
+  margin: 12px 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #100d18;
+}
+
+.immutable-facts div {
+  min-width: 0;
+  padding: 11px 12px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.immutable-facts div:nth-child(2n) {
+  border-right: 0;
+}
+
+.immutable-facts div:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+.immutable-facts dt,
+.immutable-facts dd {
+  margin: 0;
+}
+
+.immutable-facts dt {
+  margin-bottom: 5px;
+  color: var(--muted-2);
+  font-size: 9px;
+}
+
+.immutable-facts dd {
+  overflow-wrap: anywhere;
+  color: #e5dfeb;
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .spin {
@@ -769,6 +813,15 @@ tbody tr:hover td {
   gap: 8px;
   border-top: 1px solid var(--border);
   background: #120e1a;
+}
+
+.refund-dialog > footer {
+  justify-content: space-between;
+}
+
+.refund-dialog > footer > div {
+  display: flex;
+  gap: 8px;
 }
 
 .confirm-view {

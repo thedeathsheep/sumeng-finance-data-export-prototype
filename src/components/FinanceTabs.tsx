@@ -2,10 +2,10 @@ import type { TabId } from "../types";
 
 export const tabItems: Array<{ id: TabId; label: string; description: string }> = [
   { id: "profiles", label: "客户及财务档案", description: "主体、合同与开票资料" },
-  { id: "recharges", label: "充值明细", description: "线上同步与线下补录" },
+  { id: "recharges", label: "充值明细", description: "订单、套餐与积分增加" },
   { id: "consumptions", label: "消费明细", description: "积分消耗与计量依据" },
   { id: "monthly", label: "月度汇总", description: "财务月份汇总结果" },
-  { id: "special", label: "特殊业务", description: "手动扣减与线下退款" },
+  { id: "special", label: "特殊业务", description: "扣减、退款、清零与调账" },
 ];
 
 interface FinanceTabsProps {

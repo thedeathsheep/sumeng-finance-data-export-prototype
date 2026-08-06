@@ -1,6 +1,6 @@
 import { AlertTriangle, CheckCircle2, Coins, ShieldCheck, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import type { AccountRecord, RechargeAdjustmentDraft, RechargeDirection } from "../types";
+import type { AccountRecord, AdjustmentBusinessNature, RechargeAdjustmentDraft, RechargeDirection } from "../types";
 
 type DialogStep = "form" | "confirm" | "success";
 
@@ -11,19 +11,25 @@ interface RechargeAdjustmentDialogProps {
 }
 
 const pointText = (value: number) => new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 2 }).format(value);
+const natureOptions: Record<RechargeDirection, AdjustmentBusinessNature[]> = {
+  增加: ["线下购买", "免费升级", "客户补偿", "纠错增加", "其他"],
+  扣减: ["退款扣回", "纠错扣减", "其他"],
+};
 
 export function RechargeAdjustmentDialog({ account, onClose, onSubmit }: RechargeAdjustmentDialogProps) {
   const [step, setStep] = useState<DialogStep>("form");
   const [direction, setDirection] = useState<RechargeDirection>("增加");
   const [amount, setAmount] = useState("");
+  const [businessNature, setBusinessNature] = useState<AdjustmentBusinessNature | "">("");
   const [reason, setReason] = useState("");
-  const [errors, setErrors] = useState<{ amount?: string; reason?: string }>({});
+  const [errors, setErrors] = useState<{ amount?: string; businessNature?: string; reason?: string }>({});
 
   useEffect(() => {
     if (!account) return;
     setStep("form");
     setDirection("增加");
     setAmount("");
+    setBusinessNature("");
     setReason("");
     setErrors({});
   }, [account]);
@@ -50,18 +56,20 @@ export function RechargeAdjustmentDialog({ account, onClose, onSubmit }: Recharg
     const nextErrors: typeof errors = {};
     if (!amount.trim() || !Number.isFinite(Number(amount)) || Number(amount) <= 0) {
       nextErrors.amount = "请输入大于 0 的调整积分";
-    } else if (!/^\d+(\.\d{1,2})?$/.test(amount.trim())) {
-      nextErrors.amount = "调整积分最多保留两位小数";
+    } else if (!/^\d+$/.test(amount.trim())) {
+      nextErrors.amount = "调整积分必须为整数";
     } else if (direction === "扣减" && Number(amount) > account.rechargePointsBalance) {
       nextErrors.amount = `最多可扣减 ${pointText(account.rechargePointsBalance)} 点`;
     }
-    if (!reason.trim()) nextErrors.reason = "请填写调整原因";
+    if (!businessNature) nextErrors.businessNature = "请选择业务性质";
+    if (businessNature === "其他" && !reason.trim()) nextErrors.reason = "选择其他时必须填写调整说明";
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length === 0) setStep("confirm");
   };
 
   const submit = () => {
-    onSubmit(account, { direction, amount: amountValue, reason: reason.trim() });
+    if (!businessNature) return;
+    onSubmit(account, { direction, amount: amountValue, businessNature, reason: reason.trim() });
     setStep("success");
   };
 
@@ -92,7 +100,7 @@ export function RechargeAdjustmentDialog({ account, onClose, onSubmit }: Recharg
               <span>调整方向 *</span>
               <span className="direction-switch" role="group" aria-label="调整方向">
                 {(["增加", "扣减"] as RechargeDirection[]).map((value) => (
-                  <button key={value} type="button" className={direction === value ? "active" : ""} onClick={() => { setDirection(value); setErrors({}); }}>{value}</button>
+                  <button key={value} type="button" className={direction === value ? "active" : ""} onClick={() => { setDirection(value); setBusinessNature(""); setErrors({}); }}>{value}</button>
                 ))}
               </span>
             </label>
@@ -100,12 +108,20 @@ export function RechargeAdjustmentDialog({ account, onClose, onSubmit }: Recharg
             <div className="recharge-form-grid">
               <label className="field">
                 <span>调整积分 *</span>
-                <input type="number" inputMode="decimal" min="0.01" step="0.01" value={amount} placeholder="请输入正数，最多两位小数" onChange={(event) => { setAmount(event.target.value); setErrors((current) => ({ ...current, amount: undefined })); }} />
+                <input type="number" inputMode="numeric" min="1" step="1" value={amount} placeholder="请输入正整数" onChange={(event) => { setAmount(event.target.value); setErrors((current) => ({ ...current, amount: undefined })); }} />
                 {errors.amount && <small className="field-error">{errors.amount}</small>}
               </label>
+              <label className="field">
+                <span>业务性质 *</span>
+                <select aria-label="业务性质" value={businessNature} onChange={(event) => { setBusinessNature(event.target.value as AdjustmentBusinessNature); setErrors((current) => ({ ...current, businessNature: undefined, reason: undefined })); }}>
+                  <option value="">请选择</option>
+                  {natureOptions[direction].map((value) => <option key={value} value={value}>{value}</option>)}
+                </select>
+                {errors.businessNature && <small className="field-error">{errors.businessNature}</small>}
+              </label>
               <label className="field field-span-2">
-                <span>调整原因 * <em>{reason.length}/200</em></span>
-                <textarea maxLength={200} value={reason} placeholder="请说明本次调整的业务原因，提交后将写入流水" onChange={(event) => { setReason(event.target.value); setErrors((current) => ({ ...current, reason: undefined })); }} />
+                <span>调整说明{businessNature === "其他" ? " *" : ""} <em>{reason.length}/200</em></span>
+                <textarea maxLength={200} value={reason} placeholder={businessNature === "其他" ? "请输入具体业务原因" : "选填，原文将保留在积分流水中"} onChange={(event) => { setReason(event.target.value); setErrors((current) => ({ ...current, reason: undefined })); }} />
                 {errors.reason && <small className="field-error">{errors.reason}</small>}
               </label>
             </div>
@@ -127,9 +143,10 @@ export function RechargeAdjustmentDialog({ account, onClose, onSubmit }: Recharg
             <dl>
               <div><dt>账户</dt><dd>{account.accountType} · {account.accountName}（{account.id}）</dd></div>
               <div><dt>调整方向</dt><dd>{direction}</dd></div>
+              <div><dt>业务性质</dt><dd>{businessNature}</dd></div>
               <div><dt>积分变动</dt><dd className={signedAmount >= 0 ? "money-positive" : "money-negative"}>{signedAmount >= 0 ? "+" : ""}{pointText(signedAmount)} 点</dd></div>
               <div><dt>调整前 / 后</dt><dd>{pointText(account.rechargePointsBalance)} → {pointText(balanceAfter)} 点</dd></div>
-              <div><dt>调整原因</dt><dd>{reason.trim()}</dd></div>
+              <div><dt>调整说明</dt><dd>{reason.trim() || "/"}</dd></div>
             </dl>
             <div className="immutable-warning"><AlertTriangle size={15} />提交后将生成不可删除的积分流水；如需纠正，请新增一笔反向调整。</div>
           </div>
@@ -141,7 +158,7 @@ export function RechargeAdjustmentDialog({ account, onClose, onSubmit }: Recharg
             <CheckCircle2 className="state-success" size={46} />
             <h3>充值积分调整成功</h3>
             <p>{account.accountName} 的充值积分余额已更新为 {pointText(balanceAfter)} 点</p>
-            <small>已生成后台手动调整流水，可在下方最近调整流水中查看</small>
+            <small>已生成后台手动调整流水，并自动同步至{direction === "增加" ? "充值明细" : "特殊业务"}</small>
           </div>
           <footer><button className="primary-button" onClick={onClose}>完成</button></footer>
         </>}

@@ -240,8 +240,30 @@
   }
 
   .account-identity,
-  .recharge-form-grid {
+  .recharge-form-grid,
+  .immutable-facts {
     grid-template-columns: 1fr;
+  }
+
+  .immutable-facts div,
+  .immutable-facts div:nth-child(2n),
+  .immutable-facts div:nth-last-child(-n + 2) {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .immutable-facts div:last-child {
+    border-bottom: 0;
+  }
+
+  .refund-dialog > footer {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .refund-dialog > footer > div {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 
   .account-identity div {
