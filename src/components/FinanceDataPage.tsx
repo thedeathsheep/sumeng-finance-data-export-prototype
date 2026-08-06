@@ -46,7 +46,7 @@ const tabScopeNotes: Record<TabId, string> = {
   recharges: "资金事实与积分事实分开记录。线下款项登记后，必须关联算力账户中的真实积分调整流水，才算完成积分发放。",
   consumptions: "消费只同步线上积分流水。一笔消费可以同时扣减套餐、充值和赠送积分；没有确认的金额换算依据时，金额字段显示“/”。",
   monthly: "月度数据按当前筛选条件动态汇总，只统计未作废的有效记录；积分不自动折算人民币或收入。",
-  special: "退款、清零和调账等涉及积分的事项必须关联真实积分流水；支付手续费按第三方商家后台账单、按月和渠道人工登记，不拆分到单笔订单。",
+  special: "只有后台管理员手动扣减积分会自动生成扣减记录；财务可将记录标记为线下退款并补充对公转账资料，原积分流水保持不变。",
 };
 
 interface FinanceDataPageProps {
@@ -99,11 +99,7 @@ export function FinanceDataPage({ accountRecords, additionalEntries, onOpenCredi
 
   const monthlySummary = useMemo<MonthlySummaryRecord>(() => {
     const validRecharges = filteredRecharges.filter((item) => item.status !== "已作废");
-    const validSpecials = filteredSpecial.filter((item) => item.status !== "已作废");
     const giftAmount = validRecharges.reduce((sum, item) => sum + amount(item.giftAmount), 0);
-    const feeAmount = validSpecials
-      .filter((item) => item.type === "支付手续费" && item.status === "已完成")
-      .reduce((sum, item) => sum + amount(item.principalAmount), 0);
     return {
       id: `MONTH-${month}`,
       month,
@@ -112,10 +108,9 @@ export function FinanceDataPage({ accountRecords, additionalEntries, onOpenCredi
       uncollectedRechargeAmount: validRecharges.reduce((sum, item) => sum + (item.receiptStatus === "待收款" ? amount(item.actualAmount) : 0), 0),
       principalConsumptionAmount: "/",
       giftConsumptionAmount: "/",
-      paymentFeeAmount: feeAmount || "/",
       note: "按当前筛选动态汇总；金额与积分分离，无法由积分可靠形成的金额指标显示 /",
     };
-  }, [filteredRecharges, filteredSpecial, month]);
+  }, [filteredRecharges, month]);
   const filteredMonthly = useMemo(() => [monthlySummary], [monthlySummary]);
 
   const rowsByTab: Record<TabId, FinanceRow[]> = { profiles: filteredProfiles, recharges: filteredRecharges, consumptions: filteredConsumptions, monthly: filteredMonthly, special: filteredSpecial };
@@ -143,9 +138,9 @@ export function FinanceDataPage({ accountRecords, additionalEntries, onOpenCredi
       { label: "未回款充值", value: money(monthlySummary.uncollectedRechargeAmount), hint: "来自待收款记录" },
     ],
     special: [
-      { label: "特殊业务记录", value: `${filteredSpecial.length} 条`, hint: "系统同步与人工录入" },
-      { label: "待闭环", value: `${filteredSpecial.filter((item) => ["待处理", "资金已处理待积分"].includes(item.status)).length} 条`, hint: "资金或积分事实尚未完成" },
-      { label: "支付手续费", value: filteredSpecial.some((item) => item.type === "支付手续费" && item.status === "已完成") ? money(filteredSpecial.filter((item) => item.type === "支付手续费" && item.status === "已完成").reduce((sum, item) => sum + amount(item.principalAmount), 0)) : "/", hint: "商家后台按月、按渠道录入" },
+      { label: "特殊业务记录", value: `${filteredSpecial.length} 条`, hint: "系统同步与人工补充" },
+      { label: "后台手动扣减", value: `${filteredSpecial.filter((item) => item.type === "后台手动扣减").length} 条`, hint: "扣减成功后自动生成" },
+      { label: "线下退款", value: `${filteredSpecial.filter((item) => item.type === "退款业务").length} 条`, hint: "财务补充对公转账资料" },
     ],
   }), [filteredConsumptions, filteredProfiles, filteredRecharges, filteredSpecial, month, monthlySummary]);
 
@@ -163,8 +158,8 @@ export function FinanceDataPage({ accountRecords, additionalEntries, onOpenCredi
       : matchedAccounts.length
         ? `匹配账户（${matchedAccounts.length}）`
         : "无匹配账户";
-  const manualTabs: TabId[] = ["profiles", "recharges", "special"];
-  const manualLabel: Partial<Record<TabId, string>> = { profiles: "新增财务档案", recharges: "录入线下充值", special: "录入特殊业务" };
+  const manualTabs: TabId[] = ["profiles", "recharges"];
+  const manualLabel: Partial<Record<TabId, string>> = { profiles: "新增财务档案", recharges: "录入线下充值" };
   const unavailableAccountIds = useMemo(() => profiles
     .filter((profile) => profile.recordStatus === "已生效" && profile.id !== editingId)
     .flatMap((profile) => profile.linkedAccountIds), [editingId, profiles]);
@@ -219,10 +214,11 @@ export function FinanceDataPage({ accountRecords, additionalEntries, onOpenCredi
         principalAmount: typeof item.principalAmount === "number" ? String(item.principalAmount) : "",
         giftAmount: typeof item.giftAmount === "number" ? String(item.giftAmount) : "",
         specialType: item.type,
-        paymentChannel: item.paymentChannel === "/" ? "" : item.paymentChannel,
         fundStatus: item.fundStatus,
         pointsLedgerId: item.pointsLedgerId === "/" ? "" : item.pointsLedgerId,
         relatedRecordId: item.relatedRecordId === "/" ? "" : item.relatedRecordId,
+        refundAt: item.refundAt === "/" ? "" : item.refundAt,
+        refundReference: item.refundReference === "/" ? "" : item.refundReference,
         reason: item.reason === "/" ? "" : item.reason,
         attachment: item.attachment === "/" ? "" : item.attachment,
       };
@@ -312,54 +308,29 @@ export function FinanceDataPage({ accountRecords, additionalEntries, onOpenCredi
     }
 
     if (activeTab === "special") {
-      const specialType = (draft.specialType ?? "退款业务") as SpecialRecord["type"];
-      const isPaymentFee = specialType === "支付手续费";
-      const account = accountRecords.find((item) => item.id === draft.accountId);
-      if (!isPaymentFee && !account) return;
-      const profile = account ? activeProfileFor(account.id) : undefined;
-      const ledger = account ? rechargeAdjustmentLedgers.find((item) => item.id === draft.pointsLedgerId && item.accountId === account.id) : undefined;
-      const fundStatus = (isPaymentFee ? "已支付" : draft.fundStatus ?? "待处理") as SpecialRecord["fundStatus"];
-      const pointsRequired = ["退款业务", "过期清零", "调账 / 冲红"].includes(specialType);
-      const status: SpecialRecord["status"] = fundStatus === "待处理"
-        ? "待处理"
-        : pointsRequired && !ledger
-          ? "资金已处理待积分"
-          : "已完成";
-      const recordId = editingId ?? `MAN-${month.replace("-", "")}-${String(specials.length + 1).padStart(3, "0")}`;
-      const previousLedgerId = editingId ? specials.find((item) => item.id === editingId)?.pointsLedgerId : undefined;
+      const existing = specials.find((item) => item.id === editingId);
+      if (!existing) return;
+      const specialType: SpecialRecord["type"] = draft.specialType === "退款业务" ? "退款业务" : "后台手动扣减";
+      const isRefund = specialType === "退款业务";
       const record: SpecialRecord = {
-        id: recordId,
-        accountId: account?.id ?? "/",
-        accountName: account?.accountName ?? "/",
-        accountType: account?.accountType ?? "/",
-        financeProfileId: profile?.id ?? "/",
-        financeProfileName: profile?.customerName ?? "/",
-        customerType: profile?.customerType ?? "/",
-        month,
+        ...existing,
         type: specialType,
-        occurredAt: dateTime(draft.occurredAt),
-        planPoints: 0,
-        rechargePoints: ledger?.delta ?? 0,
-        giftPoints: 0,
-        principalAmount: optionalAmount(draft.principalAmount),
-        giftAmount: isPaymentFee ? "/" : optionalAmount(draft.giftAmount),
-        relatedRecordType: !isPaymentFee && draft.relatedRecordId ? "关联原记录" : "/",
-        relatedRecordId: isPaymentFee ? "/" : empty(draft.relatedRecordId),
-        pointsLedgerId: ledger?.id ?? "/",
-        paymentChannel: isPaymentFee ? empty(draft.paymentChannel) : "/",
-        fundStatus,
-        reason: empty(draft.reason),
-        attachment: empty(draft.attachment),
+        principalAmount: isRefund ? optionalAmount(draft.principalAmount) : "/",
+        giftAmount: "/",
+        refundAt: isRefund ? empty(draft.refundAt) : "/",
+        refundReference: isRefund ? empty(draft.refundReference) : "/",
+        fundStatus: isRefund ? "已退款" : "无需资金处理",
+        reason: isRefund ? empty(draft.reason) : existing.reason,
+        attachment: isRefund ? empty(draft.attachment) : "/",
         operator: "Wsq",
-        source: "人工录入",
+        source: isRefund ? "系统同步·人工补充" : "系统同步",
         updatedAt: now,
-        status,
+        status: "已完成",
       };
-      setSpecials((current) => editingId ? current.map((item) => item.id === editingId ? record : item) : [record, ...current]);
-      appendAudit(recordId, editingId ? "修改" : "创建", isPaymentFee
-        ? `${editingId ? "更新" : "登记"}${month} ${empty(draft.paymentChannel)}手续费合计`
-        : `${editingId ? "更新" : "登记"}${specialType}，资金状态：${fundStatus}`);
-      if (ledger && previousLedgerId !== ledger.id) appendAudit(recordId, "关联积分流水", `关联 ${ledger.id}，积分变动 ${ledger.delta.toLocaleString("zh-CN")} 点`);
+      setSpecials((current) => current.map((item) => item.id === existing.id ? record : item));
+      appendAudit(existing.id, "修改", isRefund
+        ? `标记为退款，补充线下对公转账 ${empty(draft.refundReference)}；原积分流水 ${existing.pointsLedgerId} 未修改`
+        : "恢复为后台手动扣减分类；原积分流水未修改");
     }
     setManualOpen(false);
     setEditingId(null);

@@ -1,5 +1,6 @@
 const toneByValue: Record<string, string> = {
   "系统同步": "success",
+  "系统同步·人工补充": "purple",
   "人工录入": "purple",
   "正常": "success",
   "正常使用": "success",

@@ -3,7 +3,7 @@ export type TabId = "profiles" | "recharges" | "consumptions" | "monthly" | "spe
 export type AccountType = "用户" | "团队";
 export type CustomerType = "个人" | "企业";
 export type DataStatus = "系统同步" | "人工录入" | "暂无数据" | "已生效" | "已作废" | "待收款" | "已收款";
-export type RecordSource = "系统同步" | "人工录入";
+export type RecordSource = "系统同步" | "人工录入" | "系统同步·人工补充";
 
 export interface AccountRecord {
   id: string;
@@ -113,7 +113,6 @@ export interface MonthlySummaryRecord {
   uncollectedRechargeAmount: number;
   principalConsumptionAmount: number | string;
   giftConsumptionAmount: number | string;
-  paymentFeeAmount: number | string;
   note: string;
 }
 
@@ -126,7 +125,7 @@ export interface SpecialRecord {
   financeProfileName: string;
   customerType?: CustomerType | "/";
   month: string;
-  type: "退款业务" | "过期清零" | "调账 / 冲红" | "支付手续费" | "作废 / 取消订单";
+  type: "后台手动扣减" | "退款业务" | "过期清零" | "调账 / 冲红" | "作废 / 取消订单";
   occurredAt: string;
   planPoints: number;
   rechargePoints: number;
@@ -136,8 +135,9 @@ export interface SpecialRecord {
   relatedRecordType: string;
   relatedRecordId: string;
   pointsLedgerId: string;
-  paymentChannel?: string;
-  fundStatus: "待处理" | "已退款" | "已支付" | "无需资金处理";
+  refundAt?: string;
+  refundReference?: string;
+  fundStatus: "待处理" | "已退款" | "无需资金处理";
   reason: string;
   attachment: string;
   operator: string;

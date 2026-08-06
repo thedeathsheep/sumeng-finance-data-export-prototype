@@ -30,9 +30,10 @@ export interface ManualRecordDraft {
   receiptStatus?: string;
   pointsLedgerId?: string;
   specialType?: string;
-  paymentChannel?: string;
   fundStatus?: string;
   relatedRecordId?: string;
+  refundAt?: string;
+  refundReference?: string;
   reason?: string;
   attachment?: string;
 }
@@ -51,13 +52,13 @@ interface ManualRecordDialogProps {
 const titleByTab: Partial<Record<TabId, string>> = {
   profiles: "新增财务档案",
   recharges: "录入线下充值",
-  special: "录入特殊业务",
+  special: "补充退款资料",
 };
 
 export function ManualRecordDialog({ open, tab, accounts, ledgers, unavailableAccountIds, initialDraft, onClose, onSave }: ManualRecordDialogProps) {
   const [draft, setDraft] = useState<ManualRecordDraft>({});
   const closeRef = useRef<HTMLButtonElement>(null);
-  const title = initialDraft ? `编辑${titleByTab[tab]?.replace("新增", "").replace("录入", "") ?? "人工记录"}` : titleByTab[tab] ?? "人工录入";
+  const title = tab === "special" ? "补充线下退款资料" : initialDraft ? `编辑${titleByTab[tab]?.replace("新增", "").replace("录入", "") ?? "人工记录"}` : titleByTab[tab] ?? "人工录入";
   const selectable = useMemo(() => accounts.filter((item) => item.status !== "到期停用"), [accounts]);
 
   useEffect(() => {
@@ -66,7 +67,7 @@ export function ManualRecordDialog({ open, tab, accounts, ledgers, unavailableAc
       ? { customerType: "企业", packageCycle: "年", invoiceNeeded: "是", accountStatus: "正常使用", linkedAccountIds: [] }
       : tab === "recharges"
         ? { paymentMethod: "对公转账", discountType: "普通充值", receiptStatus: "已收款", occurredAt: "2026-07-31T15:00" }
-        : { specialType: "退款业务", fundStatus: "待处理", occurredAt: "2026-07-31T15:00" };
+        : { specialType: "后台手动扣减", fundStatus: "无需资金处理", occurredAt: "2026-07-31T15:00" };
     setDraft({ ...defaults, ...initialDraft });
     window.setTimeout(() => closeRef.current?.focus(), 0);
     const onKeyDown = (event: KeyboardEvent) => event.key === "Escape" && onClose();
@@ -80,11 +81,11 @@ export function ManualRecordDialog({ open, tab, accounts, ledgers, unavailableAc
     const current = draft.linkedAccountIds ?? [];
     update("linkedAccountIds", current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
   };
-  const isPaymentFee = tab === "special" && draft.specialType === "支付手续费";
+  const isRefund = tab === "special" && draft.specialType === "退款业务";
   const requiredReady = tab === "profiles"
     ? Boolean(draft.customerName && draft.linkedAccountIds?.length)
     : tab === "special"
-      ? Boolean(draft.occurredAt && (isPaymentFee ? draft.paymentChannel && draft.principalAmount : draft.accountId))
+      ? Boolean(isRefund && draft.accountId && draft.occurredAt && draft.pointsLedgerId && draft.refundAt && draft.principalAmount && draft.refundReference)
       : Boolean(draft.accountId && draft.occurredAt);
   const availableLedgers = ledgers.filter((ledger) => ledger.accountId === draft.accountId && (tab !== "recharges" || ledger.delta > 0));
 
@@ -166,30 +167,30 @@ export function ManualRecordDialog({ open, tab, accounts, ledgers, unavailableAc
           </>}
 
           {tab === "special" && <section className="form-section">
-            <div className="form-section-heading"><span>1</span><div><h3>{isPaymentFee ? "第三方支付手续费" : "特殊业务资料"}</h3><p>{isPaymentFee ? "按商家后台账单，按月份和支付渠道录入手续费合计" : "人工记录只允许后续编辑或作废，不支持物理删除"}</p></div></div>
+            <div className="form-section-heading"><span>1</span><div><h3>后台手动扣减记录</h3><p>账户、扣减时间、积分流水和三类积分扣减值来自系统，不允许在财务看板修改</p></div></div>
             <div className="form-grid">
-              <label className="field"><span>业务类型</span><select value={draft.specialType ?? "退款业务"} onChange={(event) => { const value = event.target.value; setDraft((current) => ({ ...current, specialType: value, ...(value === "支付手续费" ? { accountId: "", relatedRecordId: "", pointsLedgerId: "", giftAmount: "", fundStatus: "已支付" } : {}) })); }}><option>退款业务</option><option>过期清零</option><option>调账 / 冲红</option><option>支付手续费</option><option>作废 / 取消订单</option></select></label>
-              <label className="field"><span>{isPaymentFee ? "账单归属时间 *" : "发生时间 *"}</span><input type="datetime-local" value={draft.occurredAt ?? ""} onChange={(event) => update("occurredAt", event.target.value)} /></label>
-              {isPaymentFee ? <>
-                <label className="field"><span>支付渠道 *</span><select value={draft.paymentChannel ?? ""} onChange={(event) => update("paymentChannel", event.target.value)}><option value="">请选择</option><option>微信</option><option>支付宝</option><option>其他</option></select></label>
-                <label className="field"><span>手续费合计 *</span><input type="number" min="0" value={draft.principalAmount ?? ""} onChange={(event) => update("principalAmount", event.target.value)} /></label>
-                <div className="fee-scope-note field-span-2"><strong>记账口径</strong><span>用户实付金额保持原值；手续费作为平台级费用单独登记，不关联单笔订单、客户或积分流水。</span></div>
-              </> : <>
-                <label className="field"><span>关联账户 *</span><select value={draft.accountId ?? ""} onChange={(event) => update("accountId", event.target.value)}><option value="">请选择</option>{accounts.map((item) => <option key={item.id} value={item.id}>{item.accountName} · {item.id}</option>)}</select></label>
-                <label className="field"><span>关联原记录编号</span><input value={draft.relatedRecordId ?? ""} onChange={(event) => update("relatedRecordId", event.target.value)} /></label>
-                <label className="field"><span>本金金额</span><input type="number" min="0" value={draft.principalAmount ?? ""} onChange={(event) => update("principalAmount", event.target.value)} /></label>
-                <label className="field"><span>赠送金额（人民币）</span><input type="number" min="0" value={draft.giftAmount ?? ""} onChange={(event) => update("giftAmount", event.target.value)} /></label>
-                <label className="field"><span>资金处理状态</span><select value={draft.fundStatus ?? "待处理"} onChange={(event) => update("fundStatus", event.target.value)}><option>待处理</option><option>已退款</option><option>已支付</option><option>无需资金处理</option></select></label>
-                <label className="field"><span>关联积分调整流水</span><select value={draft.pointsLedgerId ?? ""} onChange={(event) => update("pointsLedgerId", event.target.value)}><option value="">暂未关联 / 无需关联</option>{availableLedgers.map((ledger) => <option key={ledger.id} value={ledger.id}>{ledger.id} · {ledger.direction} {Math.abs(ledger.delta).toLocaleString("zh-CN")} 点</option>)}</select></label>
-              </>}
-              <label className="field field-span-2"><span>{isPaymentFee ? "备注" : "原因"}</span><textarea rows={3} value={draft.reason ?? ""} onChange={(event) => update("reason", event.target.value)} /></label>
-              <div className="field field-span-2"><span>凭证 / 证明材料（可选）</span><label className="evidence-upload"><input type="file" onChange={(event) => { update("attachment", event.target.files?.[0]?.name ?? ""); event.currentTarget.value = ""; }} /><Upload size={16} /><span>{draft.attachment ? "重新选择文件" : "选择文件"}</span></label>{draft.attachment && <div className="selected-evidence"><Paperclip size={14} /><span>{draft.attachment}</span><button type="button" aria-label="移除已选凭证" onClick={() => update("attachment", "")}><Trash2 size={14} /></button></div>}</div>
+              <label className="field"><span>业务分类</span><select value={draft.specialType ?? "后台手动扣减"} onChange={(event) => update("specialType", event.target.value)}><option>后台手动扣减</option><option>退款业务</option></select></label>
+              <label className="field"><span>积分扣减时间</span><input type="datetime-local" value={draft.occurredAt ?? ""} disabled /></label>
+              <label className="field"><span>关联账户</span><input value={accounts.find((item) => item.id === draft.accountId)?.accountName ?? draft.accountId ?? "/"} disabled /></label>
+              <label className="field"><span>积分扣减流水</span><input value={draft.pointsLedgerId ?? "/"} disabled /></label>
+              <div className="fee-scope-note field-span-2"><strong>数据边界</strong><span>修改业务分类只补充财务资料，不会修改、重做或冲销原积分流水。</span></div>
             </div>
+            {isRefund ? <>
+              <div className="form-section-heading section-divider"><span>2</span><div><h3>线下退款资料</h3><p>所有退款均通过线下对公转账完成</p></div></div>
+              <div className="form-grid">
+                <label className="field"><span>退款日期 *</span><input type="date" value={draft.refundAt ?? ""} onChange={(event) => update("refundAt", event.target.value)} /></label>
+                <label className="field"><span>退款金额 *</span><input type="number" min="0" value={draft.principalAmount ?? ""} onChange={(event) => update("principalAmount", event.target.value)} /></label>
+                <label className="field"><span>对公转账流水号 *</span><input value={draft.refundReference ?? ""} onChange={(event) => update("refundReference", event.target.value)} /></label>
+                <label className="field"><span>资金状态</span><input value="已退款" disabled /></label>
+                <label className="field field-span-2"><span>退款原因</span><textarea rows={3} value={draft.reason ?? ""} onChange={(event) => update("reason", event.target.value)} /></label>
+                <div className="field field-span-2"><span>退款凭证（可选）</span><label className="evidence-upload"><input type="file" onChange={(event) => { update("attachment", event.target.files?.[0]?.name ?? ""); event.currentTarget.value = ""; }} /><Upload size={16} /><span>{draft.attachment ? "重新选择文件" : "选择文件"}</span></label>{draft.attachment && <div className="selected-evidence"><Paperclip size={14} /><span>{draft.attachment}</span><button type="button" aria-label="移除已选凭证" onClick={() => update("attachment", "")}><Trash2 size={14} /></button></div>}</div>
+              </div>
+            </> : <p className="workflow-hint">请选择“退款业务”后补充线下退款资料。普通后台手动扣减无需财务重复录入。</p>}
           </section>}
 
-          <aside className="audit-promise"><ShieldCheck size={16} /><span>保存后记录“人工录入”、操作人和更新时间；后续修改形成变更记录，作废后原数据仍可查询。</span></aside>
+          <aside className="audit-promise"><ShieldCheck size={16} /><span>{tab === "special" ? "保存后标记为“系统同步·人工补充”，并保留修改人、修改时间和原积分流水。" : "保存后记录“人工录入”、操作人和更新时间；后续修改形成变更记录，作废后原数据仍可查询。"}</span></aside>
         </div>
-        <footer><button className="secondary-button" onClick={onClose}>取消</button><button className="primary-button" disabled={!requiredReady} onClick={() => onSave(draft)}><Link2 size={15} />{initialDraft ? "保存修改" : "保存记录"}</button></footer>
+        <footer><button className="secondary-button" onClick={onClose}>取消</button><button className="primary-button" disabled={!requiredReady} onClick={() => onSave(draft)}><Link2 size={15} />{tab === "special" ? "保存退款资料" : initialDraft ? "保存修改" : "保存记录"}</button></footer>
       </section>
     </div>
   );
