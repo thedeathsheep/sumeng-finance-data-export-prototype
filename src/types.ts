@@ -111,14 +111,10 @@ export interface ConsumptionRecord {
   planPoints: number | string;
   rechargePoints: number | string;
   giftPoints: number | string;
-  principalDeductionAmount: number | string;
-  giftDeductionAmount: number | string;
-  billingUnitPrice: string;
-  measurementBasis: string;
+  actualBillingUsage: string;
+  billingRateSnapshot: string;
+  actualPointsConsumed: number;
   contractNo: string;
-  relatedType: "任务" | "订单" | "作业" | "其他" | "/";
-  relatedId: string;
-  status: "消耗成功" | "已冲正";
   source: "系统同步";
   operator: string;
   lastModifiedBy: string;
@@ -141,8 +137,10 @@ export type DeductionBusinessNature = "退款扣回" | "纠错扣减" | "其他"
 export type SpecialBusinessNature =
   | DeductionBusinessNature
   | "自动过期清零"
-  | "系统调账或冲红"
-  | "未支付取消";
+  | "未支付取消"
+  | "历史事项补录"
+  | "线下事项补录"
+  | "其他事项补录";
 export type RefundReason = "客户注销" | "服务终止" | "多扣费返还" | "其他";
 
 export interface SpecialRecord {
@@ -155,11 +153,11 @@ export interface SpecialRecord {
   customerType: CustomerType | "/";
   month: string;
   type:
-    | "后台手动扣减"
-    | "退款业务"
+    | "积分扣减"
+    | "退款"
     | "过期清零"
-    | "调账 / 冲红"
-    | "作废 / 取消未生效充值订单";
+    | "订单作废"
+    | "手工补录";
   businessNature: SpecialBusinessNature;
   occurredAt: string;
   planPoints: number | string;
@@ -176,9 +174,11 @@ export interface SpecialRecord {
   refundReason: RefundReason | "/";
   refundReasonNote: string;
   refundEvidence: string;
+  manualAmount: number | string;
+  pointsImpactNote: string;
   reason: string;
   operator: string;
-  source: "系统同步";
+  source: RecordSource;
   lastModifiedBy: string;
   updatedAt: string;
   status: RecordStatus;
@@ -233,6 +233,17 @@ export interface RefundSupplementDraft {
 export interface BusinessNatureChangeDraft {
   businessNature: DeductionBusinessNature;
   changeReason: string;
+}
+
+export interface ManualSpecialDraft {
+  financeProfileId: string;
+  accountId: string;
+  occurredAt: string;
+  businessNature: "历史事项补录" | "线下事项补录" | "其他事项补录";
+  manualAmount: string;
+  pointsImpactNote: string;
+  reason: string;
+  evidence: string;
 }
 
 export type FinanceRow =

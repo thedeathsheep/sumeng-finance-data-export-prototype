@@ -5,7 +5,7 @@ export const tabItems: Array<{ id: TabId; label: string; description: string }> 
   { id: "recharges", label: "充值明细", description: "订单、套餐与积分增加" },
   { id: "consumptions", label: "消费明细", description: "积分消耗与计量依据" },
   { id: "monthly", label: "月度汇总", description: "财务月份汇总结果" },
-  { id: "special", label: "特殊业务", description: "扣减、退款、清零与调账" },
+  { id: "special", label: "特殊业务", description: "扣减、退款、清零与补录" },
 ];
 
 interface FinanceTabsProps {

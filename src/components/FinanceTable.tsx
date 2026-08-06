@@ -133,16 +133,12 @@ const headers: Record<TabId, string[]> = {
     "套餐积分扣减",
     "充值积分扣减",
     "赠送积分扣减",
-    "本金抵扣金额",
-    "赠送余额抵扣金额",
-    "消费单价",
-    "使用计量依据",
+    "实际计费用量",
+    "积分计费标准",
+    "实际消耗积分",
     "消费场景",
     "模型 / 服务",
     "合同编号",
-    "关联业务类型",
-    "关联业务 ID",
-    "消费状态",
     "数据来源",
     "原操作人",
     "最后修改人",
@@ -178,13 +174,14 @@ const headers: Record<TabId, string[]> = {
     "赠送积分变动",
     "处理状态",
     "资金状态",
-    "退款金额",
+    "人民币金额",
     "退款日期",
     "对公转账流水号",
     "退款原因",
     "退款原因说明",
-    "调整说明",
-    "退款凭证",
+    "积分影响说明",
+    "事项说明",
+    "凭证",
     "数据来源",
     "原操作人",
     "最后修改人",
@@ -228,8 +225,37 @@ function profileActions(
 }
 
 function specialActions(item: SpecialRecord, handlers: FinanceTableProps) {
+  if (item.source === "人工维护") {
+    return (
+      <div className="row-actions">
+        <button
+          aria-label="编辑特殊业务"
+          title="编辑特殊业务"
+          disabled={item.status === "已作废"}
+          onClick={() => handlers.onEdit("special", item.id)}
+        >
+          <PencilLine size={13} />
+        </button>
+        <button
+          aria-label="查看变更记录"
+          title="查看变更记录"
+          onClick={() => handlers.onHistory("special", item.id)}
+        >
+          <History size={13} />
+        </button>
+        <button
+          aria-label="作废特殊业务"
+          title="作废特殊业务"
+          disabled={item.status === "已作废"}
+          onClick={() => handlers.onVoid("special", item.id)}
+        >
+          <Ban size={13} />
+        </button>
+      </div>
+    );
+  }
   if (
-    !(["后台手动扣减", "退款业务"] as SpecialRecord["type"][]).includes(
+    !(["积分扣减", "退款"] as SpecialRecord["type"][]).includes(
       item.type,
     )
   )
@@ -354,16 +380,12 @@ function cellsFor(tab: TabId, row: FinanceRow, handlers: FinanceTableProps) {
           : item.giftPoints,
         false,
       ),
-      moneyCell(item.principalDeductionAmount),
-      moneyCell(item.giftDeductionAmount),
-      valueCell(item.billingUnitPrice),
-      valueCell(item.measurementBasis),
+      valueCell(item.actualBillingUsage),
+      valueCell(item.billingRateSnapshot),
+      pointCell(item.actualPointsConsumed, false),
       valueCell(item.scene),
       valueCell(item.service),
       valueCell(item.contractNo),
-      valueCell(item.relatedType),
-      valueCell(item.relatedId),
-      <StatusBadge value={item.status} />,
       <StatusBadge value={item.source} />,
       item.operator,
       valueCell(item.lastModifiedBy),
@@ -404,11 +426,12 @@ function cellsFor(tab: TabId, row: FinanceRow, handlers: FinanceTableProps) {
     pointCell(item.giftPoints),
     <StatusBadge value={item.handlingStatus} />,
     <StatusBadge value={item.fundStatus} />,
-    moneyCell(item.refundAmount),
+    moneyCell(item.type === "退款" ? item.refundAmount : item.manualAmount),
     valueCell(item.refundDate),
     valueCell(item.transferReference),
     valueCell(item.refundReason),
     valueCell(item.refundReasonNote),
+    valueCell(item.pointsImpactNote),
     valueCell(item.reason),
     valueCell(item.refundEvidence),
     <StatusBadge value={item.source} />,

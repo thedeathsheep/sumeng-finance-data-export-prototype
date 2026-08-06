@@ -74,7 +74,7 @@ export default function App() {
         financeProfileName: "/",
         customerType: "/",
         month: ledger.occurredAt.slice(0, 7),
-        type: "后台手动扣减",
+        type: "积分扣减",
         businessNature:
           ledger.businessNature as SpecialRecord["businessNature"],
         occurredAt: ledger.occurredAt,
@@ -92,6 +92,8 @@ export default function App() {
         refundReason: "/",
         refundReasonNote: "/",
         refundEvidence: "/",
+        manualAmount: "/",
+        pointsImpactNote: "/",
         reason: ledger.reason,
         operator: ledger.operator,
         source: "系统同步",
